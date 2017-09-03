@@ -1,0 +1,27 @@
+{
+  "name": "chat",
+  "version": "1.0.0",
+  "description": "chat on NodeJs",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/VerDan777/ChatNodeJS.git"
+  },
+  "author": "Daniil Vereschagin",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/VerDan777/ChatNodeJS/issues"
+  },
+  "homepage": "https://github.com/VerDan777/ChatNodeJS#readme",
+  "dependencies": {
+    "express": "^4.15.4",
+    "nunjucks": "^3.0.1"
+  },
+  "devDependencies": {
+    "gulp": "^3.9.1",
+    "gulp-pug2": "0.0.2"
+  }
+}

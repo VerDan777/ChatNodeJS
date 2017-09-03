@@ -1,3 +1,3 @@
 Chat on Node JS
 Stack:
-Express, MongoDB, Mongoose, Passport
+Express, MongoDB, Mongoose, Passport, Soket.io
