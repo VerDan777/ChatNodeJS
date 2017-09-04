@@ -6,9 +6,17 @@ const nunjucks = require('nunjucks');
 const server = require('http').Server(app);
 const io = require('socket.io')(server,{serveClient:true});
 const mongoose = require('mongoose');
-const bluebird = require('blue')
+const bluebird = require('bluebird');
+const passport = require('passport');
+const {Strategy} = require('passport-jwt');
 
-mongoose.connect('mongodb://localhost:27017/chat');
+const {jwt} = require('./config');
+passport.use(new Strategy(jwt,function(jw_payload,done) {
+    if(jwt_payload !=void(0)) return done(false,jwt_payload);
+    done();
+}))
+
+mongoose.connect('mongodb://localhost:27017/chat',{useMongoClient:true});
     mongoose.Promise = require('bluebird');
 
 nunjucks.configure('./client/views/',{
@@ -17,22 +25,17 @@ nunjucks.configure('./client/views/',{
 });
 app.use('/assets',express.static('./client/public'));
 
-app.get('/',function(req,res) {
+function checkAuth(req,res,next) {
+    passport.authenticate('jwt',{session: false},(err,decryptToken,jwtError) => {
+        if(jwtError !=void(0) && err !=void(0)) return res.render('index.html',{error: err || jwtError});
+        req.user  = decryptToken;
+        next();
+    })(req,res,next); 
+}
+app.get('/',checkAuth,function(req,res) {
     res.render('index.html');
 });
-io.on('connection',function(socket) {
-    socket.emit('connected',"You are connected");
-    socket.join('all');
-    socket.on('msg',content => {
-        const obj= {
-            date: new Date(),
-            content: content,
-            username: socket.id
-        }
-        socket.emit("message",obj);
-        socket.to('all').emit('message',obj);
-    })
-})
+
 server.listen(7777,() =>  {
     console.log('server started on port 7777');
 });
