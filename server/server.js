@@ -1,41 +1,45 @@
-'use strict'
+"use strict";
+
 const express = require('express');
 const app = express();
-const path = require('path');
 const nunjucks = require('nunjucks');
 const server = require('http').Server(app);
-const io = require('socket.io')(server,{serveClient:true});
+const io = require('socket.io')(server, {serveClient: true});
 const mongoose = require('mongoose');
-const bluebird = require('bluebird');
+const bodyParser = require('body-parser');
+const cookieParser = require('cookie-parser');
+
 const passport = require('passport');
-const {Strategy} = require('passport-jwt');
+const { Strategy } = require('passport-jwt');
 
-const {jwt} = require('./config');
-passport.use(new Strategy(jwt,function(jw_payload,done) {
-    if(jwt_payload !=void(0)) return done(false,jwt_payload);
+const { jwt } = require('./config');
+
+passport.use(new Strategy(jwt, function(jwt_payload, done) {
+    if(jwt_payload != void(0)) return done(false, jwt_payload);
     done();
-}))
+}));
 
-mongoose.connect('mongodb://localhost:27017/chat',{useMongoClient:true});
-    mongoose.Promise = require('bluebird');
+mongoose.connect('mongodb://localhost:27017/chatik', {useMongoClient: true});
+mongoose.Promise = require('bluebird');
+mongoose.set('debug', true);
 
-nunjucks.configure('./client/views/',{
+nunjucks.configure('./client/views', {
     autoescape: true,
     express: app
 });
-app.use('/assets',express.static('./client/public'));
 
-function checkAuth(req,res,next) {
-    passport.authenticate('jwt',{session: false},(err,decryptToken,jwtError) => {
-        if(jwtError !=void(0) && err !=void(0)) return res.render('index.html',{error: err || jwtError});
-        req.user  = decryptToken;
-        next();
-    })(req,res,next); 
-}
-app.get('/',checkAuth,function(req,res) {
-    res.render('index.html');
-});
+// parse application/x-www-form-urlencoded
+app.use(bodyParser.urlencoded({ extended: false }));
 
-server.listen(7777,() =>  {
-    console.log('server started on port 7777');
+// parse application/json
+app.use(bodyParser.json());
+
+app.use(cookieParser());
+
+require('./router')(app);
+
+require('./sockets')(io);
+
+server.listen(7777, () => {
+    console.log('Server started on port 7777');
 });
